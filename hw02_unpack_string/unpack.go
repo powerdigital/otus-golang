@@ -7,7 +7,10 @@ import (
 	"unicode"
 )
 
-var ErrInvalidString = errors.New("invalid string")
+var (
+	ErrInvalidString  = errors.New("invalid string")
+	ErrStringNotAlnum = errors.New("alphanumeric only allowed")
+)
 
 func Unpack(str string) (string, error) {
 	if len(str) == 0 {
@@ -15,7 +18,6 @@ func Unpack(str string) (string, error) {
 	}
 
 	_, validationError := validate(str)
-
 	if nil != validationError {
 		return str, validationError
 	}
@@ -25,12 +27,10 @@ func Unpack(str string) (string, error) {
 
 	for i := 1; i < len(str); i++ {
 		current := str[i]
-
 		if unicode.IsDigit(rune(current)) {
 			count, _ := strconv.Atoi(string(current))
 			repeated := strings.Repeat(string(prev), count)
 			b.WriteString(repeated)
-
 			prev = str[i+1]
 			i++
 		} else {
@@ -47,7 +47,6 @@ func Unpack(str string) (string, error) {
 
 func validate(str string) (string, error) {
 	prev := str[0]
-
 	if unicode.IsDigit(rune(prev)) {
 		return str, ErrInvalidString
 	}
@@ -60,9 +59,8 @@ func validate(str string) (string, error) {
 		current := str[i]
 
 		alphanumeric := unicode.IsDigit(rune(current)) || unicode.IsLetter(rune(current))
-
 		if !alphanumeric {
-			return str, ErrInvalidString
+			return str, ErrStringNotAlnum
 		}
 
 		if unicode.IsDigit(rune(current)) && unicode.IsDigit(rune(prev)) {
