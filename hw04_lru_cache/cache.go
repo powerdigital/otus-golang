@@ -20,6 +20,10 @@ func (c lruCache) Set(key Key, value interface{}) bool {
 	listItem := c.queue.PushFront(value)
 	c.items[key] = listItem
 
+	if c.queue.Len() > c.capacity {
+		c.queue.Remove(c.queue.Back())
+	}
+
 	return wasInCache
 }
 
