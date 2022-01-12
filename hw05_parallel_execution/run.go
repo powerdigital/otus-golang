@@ -15,9 +15,10 @@ func Run(tasks []Task, n, m int) error {
 	errorsLimit := int32(m)
 	wg := sync.WaitGroup{}
 
-	var total int
 	ch := make(chan int32)
+	defer close(ch)
 
+	var total int
 	for total < totalCount {
 		wg.Add(n)
 		for i := 0; i < n; i++ {
@@ -27,12 +28,9 @@ func Run(tasks []Task, n, m int) error {
 			task := tasks[i]
 			go task(ch)
 
-			select {
-			case count := <-ch:
-				if errorsLimit != 0 && count >= errorsLimit {
-					return ErrErrorsLimitExceeded
-				}
-			default:
+			count := <-ch
+			if errorsLimit != 0 && count >= errorsLimit {
+				return ErrErrorsLimitExceeded
 			}
 		}
 	}
