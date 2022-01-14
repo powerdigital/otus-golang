@@ -22,11 +22,11 @@ func Run(tasks []Task, n, m int) error {
 	for total < totalCount {
 		wg.Add(n)
 		for i := 0; i < n; i++ {
-			wg.Done()
 			total++
 
 			task := tasks[i]
 			go task(ch)
+			wg.Done()
 
 			count := <-ch
 			if errorsLimit != 0 && count >= errorsLimit {
