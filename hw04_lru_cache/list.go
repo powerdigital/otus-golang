@@ -110,13 +110,15 @@ func (l *list) MoveToFront(item *ListItem) {
 }
 
 func (l *list) getIndex(item *ListItem) int {
+	var index int
 	for k, v := range l.storage {
 		if v == item {
-			return k
+			index = k
+			break
 		}
 	}
 
-	panic("Index not found")
+	return index
 }
 
 func NewList() List {
