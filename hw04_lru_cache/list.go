@@ -17,63 +17,66 @@ type ListItem struct {
 }
 
 type list struct {
-	Storage []*ListItem
+	size    int
+	head    *ListItem
+	tail    *ListItem
+	storage []*ListItem
 }
 
 func (l *list) Len() int {
-	return len(l.Storage)
+	return len(l.storage)
 }
 
 func (l *list) Front() *ListItem {
-	if l.Len() == 0 {
+	if l.size == 0 {
 		return nil
 	}
 
-	return l.Storage[0]
+	return l.storage[0]
 }
 
 func (l *list) Back() *ListItem {
-	if l.Len() == 0 {
+	if l.size == 0 {
 		return nil
 	}
 
-	return l.Storage[l.Len()-1]
+	return l.tail
 }
 
 func (l *list) PushFront(val interface{}) *ListItem {
 	var next *ListItem
-	var item ListItem
-
-	if l.Len() != 0 {
-		next = l.Storage[0]
+	if l.size != 0 {
+		next = l.storage[0]
 	}
 
-	item = ListItem{val, next, nil}
+	item := ListItem{val, next, nil}
+	l.storage = append([]*ListItem{&item}, l.storage...)
+	l.head = &item
+	l.size++
 
-	var initList []*ListItem
-	initList = append(initList, &item)
-	l.Storage = append(initList, l.Storage...)
-
-	return l.Storage[0]
+	return l.head
 }
 
 func (l *list) PushBack(v interface{}) *ListItem {
-	index := l.Len()
-	item := ListItem{v, nil, l.Storage[index-1]}
-	l.Storage = append(l.Storage, &item)
+	index := l.size
+	item := ListItem{v, nil, l.storage[index-1]}
 
-	l.Storage[index-1].Next = &item
+	l.storage = append(l.storage, &item)
+	l.storage[index-1].Next = &item
+	l.tail = &item
+	l.size++
 
-	return l.Storage[index]
+	return l.storage[index]
 }
 
 func (l *list) Remove(item *ListItem) {
 	l.MoveToFront(item)
-	l.Storage = l.Storage[1:l.Len()]
+	l.storage = l.storage[1:l.Len()]
+	l.size--
 }
 
 func (l *list) MoveToFront(item *ListItem) {
-	if l.Len() < 2 || item.Prev == nil {
+	if l.size < 2 || item.Prev == nil {
 		return
 	}
 
@@ -81,7 +84,7 @@ func (l *list) MoveToFront(item *ListItem) {
 
 	deepCopy := *item
 	deepCopy.Prev = nil
-	deepCopy.Next = l.Storage[0]
+	deepCopy.Next = l.head
 
 	prev := item.Prev
 	next := item.Next
@@ -92,19 +95,22 @@ func (l *list) MoveToFront(item *ListItem) {
 
 	if item.Next != nil {
 		item.Next.Prev = prev
+	} else {
+		l.tail = prev
 	}
 
-	after := l.Storage[index+1 : l.Len()]
-	before := l.Storage[0:index]
+	after := l.storage[index+1 : l.size]
+	before := l.storage[0:index]
 	before = append(before, after...)
 	storage := []*ListItem{&deepCopy}
 	storage = append(storage, before...)
 
-	l.Storage = storage
+	l.storage = storage
+	l.head = item
 }
 
 func (l *list) getIndex(item *ListItem) int {
-	for k, v := range l.Storage {
+	for k, v := range l.storage {
 		if v == item {
 			return k
 		}
