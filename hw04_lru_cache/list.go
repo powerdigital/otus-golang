@@ -99,13 +99,10 @@ func (l *list) MoveToFront(item *ListItem) {
 		l.tail = prev
 	}
 
-	after := l.storage[index+1 : l.size]
-	before := l.storage[0:index]
-	before = append(before, after...)
-	storage := []*ListItem{&deepCopy}
-	storage = append(storage, before...)
+	sliceParts := l.storage[index+1 : l.size]
+	sliceParts = append(l.storage[0:index], sliceParts...)
 
-	l.storage = storage
+	l.storage = append([]*ListItem{&deepCopy}, sliceParts...)
 	l.head = item
 }
 
