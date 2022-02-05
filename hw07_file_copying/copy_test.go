@@ -7,8 +7,10 @@ import (
 	"testing"
 )
 
-const srcFolder = "testdata"
-const destFolder = "/tmp"
+const (
+	srcFolder  = "testdata"
+	destFolder = "/tmp"
+)
 
 func TestCopySuccess(t *testing.T) {
 	dirs, err := ioutil.ReadDir(srcFolder)
