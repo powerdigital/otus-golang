@@ -1,4 +1,4 @@
-module github.com/powerdigital/hw07_file_copying
+module github.com/powerdigital/otus-golang/hw07_file_copying
 
 go 1.16
 

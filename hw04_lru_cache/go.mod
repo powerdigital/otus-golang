@@ -1,4 +1,4 @@
-module github.com/powerdigital/hw04_lru_cache
+module github.com/powerdigital/otus-golang/hw04_lru_cache
 
 go 1.16
 

@@ -1,4 +1,4 @@
-module github.com/powerdigital/hw06_pipeline_execution
+module github.com/powerdigital/otus-golang/hw06_pipeline_execution
 
 go 1.16
 
