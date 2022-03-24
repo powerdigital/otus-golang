@@ -33,11 +33,7 @@ func (s *SQLStorage) Connect(config config.DatabaseConf) error {
 }
 
 func (s *SQLStorage) Close() error {
-	if err := s.connPool.Close(); err != nil {
-		return err
-	}
-
-	return nil
+	return s.connPool.Close()
 }
 
 func (s SQLStorage) CreateEvent(event entity.Event) error {
