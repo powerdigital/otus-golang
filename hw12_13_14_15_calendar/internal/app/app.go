@@ -1,26 +1,35 @@
 package app
 
 import (
-	"context"
+	"github.com/powerdigital/otus-golang/hw12_13_14_15_calendar/internal/logger"
+	"github.com/powerdigital/otus-golang/hw12_13_14_15_calendar/internal/storage"
+	"github.com/powerdigital/otus-golang/hw12_13_14_15_calendar/internal/storage/entity"
 )
 
-type App struct { // TODO
+type App struct {
+	logger  logger.Logger
+	storage storage.DataHandler
 }
 
-type Logger interface { // TODO
+func New(logger *logger.Logger, storage storage.DataHandler) *App {
+	return &App{
+		logger:  *logger,
+		storage: storage,
+	}
 }
 
-type Storage interface { // TODO
+func (a *App) CreateEvent(event entity.Event) error {
+	return a.storage.CreateEvent(event)
 }
 
-func New(logger Logger, storage Storage) *App {
-	return &App{}
+func (a *App) UpdateEvent(eventID int, event entity.Event) error {
+	return a.storage.UpdateEvent(eventID, event)
 }
 
-func (a *App) CreateEvent(ctx context.Context, id, title string) error {
-	// TODO
-	return nil
-	// return a.storage.CreateEvent(storage.Event{ID: id, Title: title})
+func (a *App) RemoveEvent(eventID int) error {
+	return a.storage.RemoveEvent(eventID)
 }
 
-// TODO
+func (a *App) ListEvents(userID int) ([]entity.Event, error) {
+	return a.storage.GetEventsList(userID)
+}

@@ -1,20 +1,23 @@
 package main
 
-// При желании конфигурацию можно вынести в internal/config.
-// Организация конфига в main принуждает нас сужать API компонентов, использовать
-// при их конструировании только необходимые параметры, а также уменьшает вероятность циклической зависимости.
-type Config struct {
-	Logger LoggerConf
-	// TODO
-}
+import (
+	"io/ioutil"
 
-type LoggerConf struct {
-	Level string
-	// TODO
-}
+	"github.com/powerdigital/otus-golang/hw12_13_14_15_calendar/internal/config"
+	"gopkg.in/yaml.v3"
+)
 
-func NewConfig() Config {
-	return Config{}
-}
+func NewConfig() (*config.Config, error) {
+	file, err := ioutil.ReadFile(configFile)
+	if err != nil {
+		return nil, err
+	}
 
-// TODO
+	var config *config.Config
+	err = yaml.Unmarshal(file, &config)
+	if err != nil {
+		return nil, err
+	}
+
+	return config, nil
+}

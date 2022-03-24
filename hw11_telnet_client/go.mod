@@ -1,4 +1,4 @@
-module github.com/powerdigital/hw11_telnet_client
+module github.com/powerdigital/otus-golang/hw11_telnet_client
 
 go 1.16
 

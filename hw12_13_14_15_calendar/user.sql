@@ -1,0 +1,4 @@
+CREATE DATABASE calendar;
+CREATE USER 'calendar_user'@'%' IDENTIFIED BY '123456';
+GRANT ALL PRIVILEGES ON calendar.* TO 'calendar_user'@'localhost' IDENTIFIED BY '123456';
+FLUSH PRIVILEGES;

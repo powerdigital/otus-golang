@@ -1,4 +1,4 @@
-module github.com/powerdigital/hw09_struct_validator
+module github.com/powerdigital/otus-golang/hw09_struct_validator
 
 go 1.16
 
