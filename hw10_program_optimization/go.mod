@@ -1,4 +1,4 @@
-module github.com/powerdigital/hw10_program_optimization
+module github.com/powerdigital/otus-golang/hw10_program_optimization
 
 go 1.16
 

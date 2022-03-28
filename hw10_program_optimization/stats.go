@@ -2,6 +2,7 @@ package hw10programoptimization
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -40,7 +41,7 @@ func getUsers(r io.Reader) (result users, err error) {
 		var line []byte
 		line, _, err = buf.ReadLine()
 		if err != nil {
-			if err == io.EOF {
+			if errors.Is(err, io.EOF) {
 				err = nil
 			}
 
@@ -56,8 +57,6 @@ func getUsers(r io.Reader) (result users, err error) {
 		result[i] = user
 		i++
 	}
-
-	return
 }
 
 func countDomains(u users, domain string) (DomainStat, error) {
