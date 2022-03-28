@@ -1,9 +1,9 @@
 package hw10programoptimization
 
 import (
+	"bufio"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"strings"
 
 	"github.com/mailru/easyjson"
@@ -26,26 +26,37 @@ func GetDomainStat(r io.Reader, domain string) (DomainStat, error) {
 	if err != nil {
 		return nil, fmt.Errorf("get users error: %w", err)
 	}
+
 	return countDomains(u, domain)
 }
 
 type users [100_000]User
 
 func getUsers(r io.Reader) (result users, err error) {
-	content, err := ioutil.ReadAll(r)
-	if err != nil {
-		return
-	}
+	buf := bufio.NewReader(r)
 
-	lines := strings.Split(string(content), "\n")
-	for i, line := range lines {
-		var user User
+	var i int
+	for {
+		var line []byte
+		line, _, err = buf.ReadLine()
+		if err != nil {
+			if err == io.EOF {
+				err = nil
+			}
 
-		if err = easyjson.Unmarshal([]byte(line), &user); err != nil {
 			return
 		}
+
+		content := strings.TrimSpace(string(line))
+		var user User
+		if err = easyjson.Unmarshal([]byte(content), &user); err != nil {
+			continue
+		}
+
 		result[i] = user
+		i++
 	}
+
 	return
 }
 
@@ -59,5 +70,6 @@ func countDomains(u users, domain string) (DomainStat, error) {
 			result[strings.ToLower(strings.SplitN(user.Email, "@", 2)[1])] = num
 		}
 	}
+
 	return result, nil
 }
