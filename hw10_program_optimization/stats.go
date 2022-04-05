@@ -37,10 +37,10 @@ func getUsers(r io.Reader) (result users, err error) {
 
 	i := 0
 	for buf.Scan() {
-		content := buf.Text()
+		content := buf.Bytes()
 		var user User
 
-		if err = easyjson.Unmarshal([]byte(content), &user); err != nil {
+		if err = easyjson.Unmarshal(content, &user); err != nil {
 			continue
 		}
 
