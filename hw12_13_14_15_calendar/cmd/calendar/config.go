@@ -4,7 +4,7 @@ import (
 	"io/ioutil"
 
 	"github.com/powerdigital/otus-golang/hw12_13_14_15_calendar/internal/config"
-	"gopkg.in/yaml.v3"
+	yaml3 "gopkg.in/yaml.v3"
 )
 
 func NewConfig() (*config.Config, error) {
@@ -14,7 +14,7 @@ func NewConfig() (*config.Config, error) {
 	}
 
 	var config *config.Config
-	err = yaml.Unmarshal(file, &config)
+	err = yaml3.Unmarshal(file, &config)
 	if err != nil {
 		return nil, err
 	}
