@@ -1,6 +1,7 @@
 package internalhttp
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -45,7 +46,8 @@ func (s *Server) Start() error {
 	return nil
 }
 
-func (s *Server) Stop() error {
+func (s *Server) Stop(ctx context.Context) error {
+	ctx.Done()
 	return nil
 }
 
@@ -121,8 +123,19 @@ func (h *RequestHandler) List(s Server) http.Handler {
 			return
 		}
 
-		result, _ := s.app.ListEvents(userID)
-		jsonData, _ := json.Marshal(result)
+		result, err := s.app.ListEvents(userID)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			s.logger.Error(err.Error())
+			return
+		}
+
+		jsonData, err := json.Marshal(result)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			s.logger.Error(err.Error())
+			return
+		}
 
 		w.Write(jsonData)
 	})

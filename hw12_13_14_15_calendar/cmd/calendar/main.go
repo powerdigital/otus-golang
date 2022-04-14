@@ -32,7 +32,7 @@ func main() {
 	config, err := NewConfig()
 	if err != nil {
 		fmt.Println(err)
-		os.Exit(1)
+		return
 	}
 
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
@@ -46,10 +46,10 @@ func main() {
 	go func() {
 		<-ctx.Done()
 
-		_, cancel := context.WithTimeout(context.Background(), time.Second*3)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 		defer cancel()
 
-		if err := server.Stop(); err != nil {
+		if err := server.Stop(ctx); err != nil {
 			logger.Error("failed to stop http server: " + err.Error())
 		}
 	}()
