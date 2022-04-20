@@ -11,7 +11,8 @@ type DataHandler interface {
 	CreateEvent(event entity.Event) error
 	UpdateEvent(eventID int, event entity.Event) error
 	RemoveEvent(eventID int) error
-	GetEventsList(userID int) ([]entity.Event, error)
+	GetEventsByDate(eventDate string) ([]entity.Event, error)
+	GetEventsByDateInterval(beginDate string, endDate string) ([]entity.Event, error)
 }
 
 func New(config config.Config) DataHandler {

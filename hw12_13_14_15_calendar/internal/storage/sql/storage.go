@@ -102,10 +102,34 @@ func (s SQLStorage) RemoveEvent(eventID int) error {
 	return nil
 }
 
-func (s SQLStorage) GetEventsList(userID int) ([]entity.Event, error) {
-	sql := `SELECT * FROM events WHERE user_id = :userId`
+func (s SQLStorage) GetEventsByDate(eventDate string) ([]entity.Event, error) {
+	sql := `SELECT * FROM events WHERE created_at = :eventDate`
 
-	rows, err := s.connPool.NamedQuery(sql, map[string]interface{}{"userId": userID})
+	rows, err := s.connPool.NamedQuery(sql, map[string]interface{}{"eventDate": eventDate})
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var result []entity.Event
+	event := entity.Event{}
+
+	for rows.Next() {
+		err := rows.StructScan(&event)
+		if err != nil {
+			return nil, err
+		}
+
+		result = append(result, event)
+	}
+
+	return result, nil
+}
+
+func (s SQLStorage) GetEventsByDateInterval(beginDate string, endDate string) ([]entity.Event, error) {
+	sql := `SELECT * FROM events WHERE created_at BETWEEN :beginDate AND :endDate`
+
+	rows, err := s.connPool.NamedQuery(sql, map[string]interface{}{"beginDate": beginDate, "endDate": endDate})
 	if err != nil {
 		return nil, err
 	}

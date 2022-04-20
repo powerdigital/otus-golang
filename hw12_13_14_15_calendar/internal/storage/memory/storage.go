@@ -35,15 +35,27 @@ func (s MemoryStorage) RemoveEvent(eventID int) error {
 	return nil
 }
 
-func (s MemoryStorage) GetEventsList(userID int) ([]entity.Event, error) {
+func (s MemoryStorage) GetEventsByDate(eventDate string) ([]entity.Event, error) {
 	result := make([]entity.Event, 0)
 
 	for _, event := range s.EventList {
-		if event.UserID != userID {
+		if event.CreatedAt != eventDate {
 			continue
 		}
 
 		result = append(result, event)
+	}
+
+	return result, nil
+}
+
+func (s MemoryStorage) GetEventsByDateInterval(beginDate string, endDate string) ([]entity.Event, error) {
+	result := make([]entity.Event, 0)
+
+	for _, event := range s.EventList {
+		if event.CreatedAt >= beginDate && event.CreatedAt <= endDate {
+			result = append(result, event)
+		}
 	}
 
 	return result, nil
