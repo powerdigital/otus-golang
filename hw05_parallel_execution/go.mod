@@ -1,4 +1,4 @@
-module github.com/powerdigital/hw05_parallel_execution
+module github.com/powerdigital/otus-golang/hw05_parallel_execution
 
 go 1.16
 
