@@ -3,5 +3,4 @@ syntax = "proto3";
 package event;
 
 message Event {
-    // TODO
 }

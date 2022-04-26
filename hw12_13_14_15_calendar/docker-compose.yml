@@ -1,8 +1,9 @@
 version: "3.4"
 
 services:
-  db-mysql:
+  mysql:
     image: mysql:5.7
+    container_name: "mysql"
     volumes:
       - ./scripts/user.sql:/docker-entrypoint-initdb.d/create_users.sql
       - ./volumes/data/mysql/:/var/lib/mysql
@@ -17,3 +18,12 @@ services:
       - --sql-mode=STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION
     ports:
       - "3306:3306"
+  rabbitmq:
+    image: rabbitmq:3.8-management-alpine
+    container_name: "rabbitmq"
+    environment:
+      - RABBITMQ_DEFAULT_USER=user
+      - RABBITMQ_DEFAULT_PASS=pass12345
+    ports:
+      - '5672:5672'
+      - '15672:15672'
