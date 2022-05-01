@@ -27,13 +27,9 @@ func (c lruCache) Set(key Key, value interface{}) bool {
 	return wasInCache
 }
 
-func (c lruCache) Get(key Key) (interface{}, bool) {
-	var value interface{}
-	var ok bool
-
-	if c.items[key] != nil {
+func (c lruCache) Get(key Key) (value interface{}, ok bool) {
+	if _, ok = c.items[key]; ok != false {
 		value = c.items[key].Value
-		ok = true
 	}
 
 	return value, ok

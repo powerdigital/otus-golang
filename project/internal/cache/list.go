@@ -107,7 +107,7 @@ func (l *list) MoveToFront(item *ListItem) {
 }
 
 func (l *list) getIndex(item *ListItem) int {
-	var index int
+	index := 0
 	for k, v := range l.storage {
 		if v == item {
 			index = k

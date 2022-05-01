@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"image/jpeg"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -29,10 +28,6 @@ type requestDto struct {
 }
 
 type RequestHandler struct{}
-
-type Application interface {
-	ResizeImage(imagePath string) error
-}
 
 func NewServer() *Server {
 	return &Server{
@@ -75,7 +70,7 @@ func ResizeImage(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/octet-stream")
 
-	fileBytes, err := ioutil.ReadFile(fileDest)
+	fileBytes, err := os.ReadFile(fileDest)
 	if err != nil {
 		w.Write([]byte(err.Error()))
 	}
@@ -112,7 +107,7 @@ func uploadRemoteFile(w http.ResponseWriter, r *http.Request) (fileDest string, 
 	dto, err := getRequestDto(r)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("incorrect parameters provided"))
+		w.Write([]byte(err.Error()))
 		return
 	}
 
@@ -123,13 +118,12 @@ func uploadRemoteFile(w http.ResponseWriter, r *http.Request) (fileDest string, 
 		return
 	}
 
-	scheme := urlData.Scheme
-	if len(scheme) == 0 {
-		scheme = "https"
+	if len(urlData.Scheme) == 0 {
+		urlData.Scheme = "https"
 	}
 
-	fileSource := fmt.Sprintf("%s://%s", scheme, strings.TrimLeft(urlData.Path, "/"))
-	file, err := http.Get(fileSource)
+	file, err := http.Get(urlData.String())
+	defer file.Body.Close()
 	if err != nil {
 		w.Write([]byte(err.Error()))
 	}
@@ -138,7 +132,6 @@ func uploadRemoteFile(w http.ResponseWriter, r *http.Request) (fileDest string, 
 	if err != nil {
 		w.Write([]byte(err.Error()))
 	}
-	file.Body.Close()
 
 	thumbnail := resize.Thumbnail(dto.Width, dto.Height, img, resize.Lanczos3)
 
