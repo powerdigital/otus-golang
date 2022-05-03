@@ -2,6 +2,8 @@ package internalhttp
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"image/jpeg"
@@ -9,13 +11,16 @@ import (
 	"net/url"
 	"os"
 	"strconv"
-	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/nfnt/resize"
 )
 
-const folder = "/tmp/"
+// TODO: move to config.
+const (
+	folder     = "/tmp"
+	fileExtJpg = "jpg"
+)
 
 type Server struct {
 	server *http.Server
@@ -78,6 +83,12 @@ func ResizeImage(w http.ResponseWriter, r *http.Request) {
 	w.Write(fileBytes)
 }
 
+func getRequestFileHash(dto requestDto) string {
+	filepath := fmt.Sprintf("%d-%d-%s", dto.Width, dto.Height, dto.Path)
+	hash := sha256.Sum256([]byte(filepath))
+	return hex.EncodeToString(hash[:])
+}
+
 func getRequestDto(r *http.Request) (*requestDto, error) {
 	vars := mux.Vars(r)
 
@@ -111,6 +122,16 @@ func uploadRemoteFile(w http.ResponseWriter, r *http.Request) (fileDest string, 
 		return
 	}
 
+	fileHash := getRequestFileHash(*dto)
+	fileDest = fmt.Sprintf("%s/%s.%s", folder, fileHash, fileExtJpg)
+	fileBytes, err := os.ReadFile(fileDest)
+	if err == nil {
+		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Content-Type", "application/octet-stream")
+		w.Write(fileBytes)
+		return
+	}
+
 	urlData, err := url.Parse(dto.Path)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -127,6 +148,8 @@ func uploadRemoteFile(w http.ResponseWriter, r *http.Request) (fileDest string, 
 	if err != nil {
 		w.Write([]byte(err.Error()))
 	}
+	req.Header = r.Header
+
 	cli := &http.Client{}
 	file, err := cli.Do(req)
 	if err != nil {
@@ -141,10 +164,6 @@ func uploadRemoteFile(w http.ResponseWriter, r *http.Request) (fileDest string, 
 
 	thumbnail := resize.Thumbnail(dto.Width, dto.Height, img, resize.Lanczos3)
 
-	filePath := strings.Split(dto.Path, "/")
-	filename := filePath[len(filePath)-1]
-
-	fileDest = folder + filename
 	out, err := os.Create(fileDest)
 	if err != nil {
 		w.Write([]byte(err.Error()))
