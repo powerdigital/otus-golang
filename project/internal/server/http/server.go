@@ -122,7 +122,8 @@ func uploadRemoteFile(w http.ResponseWriter, r *http.Request) (fileDest string, 
 		urlData.Scheme = "https"
 	}
 
-	file, err := http.Get(urlData.String())
+	ctx := context.Background()
+	file, err := http.NewRequestWithContext(ctx, http.MethodGet, urlData.String(), nil)
 	if err != nil {
 		w.Write([]byte(err.Error()))
 	}
