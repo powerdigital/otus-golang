@@ -13,11 +13,17 @@ import (
 )
 
 func main() {
+	config, err := NewConfig()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 	defer cancel()
 
 	app := app.NewApp()
-	server := internalhttp.NewServer(app)
+	server := internalhttp.NewServer(app, *config)
 
 	go func() {
 		<-ctx.Done()

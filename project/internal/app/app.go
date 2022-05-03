@@ -14,14 +14,12 @@ import (
 	"strings"
 
 	"github.com/nfnt/resize"
+	"github.com/powerdigital/project/internal/config"
 )
 
-const (
-	folder     = "/tmp"
-	fileExtJpg = "jpg"
-)
+const fileExtJpg = "jpg"
 
-type requestDto struct {
+type uriPathDto struct {
 	Width  uint
 	Height uint
 	Path   string
@@ -33,8 +31,8 @@ func NewApp() App {
 	return App{}
 }
 
-func (app App) ResizeImage(w http.ResponseWriter, r *http.Request) {
-	fileDest, err := uploadRemoteFile(w, r)
+func (app App) ResizeImage(w http.ResponseWriter, r *http.Request, config config.Config) {
+	fileDest, err := uploadRemoteFile(w, r, config)
 	if err != nil {
 		w.Write([]byte(err.Error()))
 	}
@@ -50,7 +48,7 @@ func (app App) ResizeImage(w http.ResponseWriter, r *http.Request) {
 	w.Write(fileBytes)
 }
 
-func uploadRemoteFile(w http.ResponseWriter, r *http.Request) (fileDest string, err error) {
+func uploadRemoteFile(w http.ResponseWriter, r *http.Request, config config.Config) (fileDest string, err error) {
 	dto, err := getRequestDto(r)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -59,7 +57,7 @@ func uploadRemoteFile(w http.ResponseWriter, r *http.Request) (fileDest string, 
 	}
 
 	fileHash := getRequestFileHash(*dto)
-	fileDest = fmt.Sprintf("%s/%s.%s", folder, fileHash, fileExtJpg)
+	fileDest = fmt.Sprintf("%s/%s.%s", config.CacheFolder, fileHash, fileExtJpg)
 	fileBytes, err := os.ReadFile(fileDest)
 	if err == nil {
 		w.WriteHeader(http.StatusOK)
@@ -111,7 +109,7 @@ func uploadRemoteFile(w http.ResponseWriter, r *http.Request) (fileDest string, 
 	return fileDest, err
 }
 
-func getRequestDto(r *http.Request) (*requestDto, error) {
+func getRequestDto(r *http.Request) (*uriPathDto, error) {
 	params := strings.Split(r.RequestURI, "/")
 
 	width, err := strconv.Atoi(params[1])
@@ -129,14 +127,14 @@ func getRequestDto(r *http.Request) (*requestDto, error) {
 		return nil, errors.New("empty file path")
 	}
 
-	return &requestDto{
+	return &uriPathDto{
 		Width:  uint(width),
 		Height: uint(height),
 		Path:   path,
 	}, nil
 }
 
-func getRequestFileHash(dto requestDto) string {
+func getRequestFileHash(dto uriPathDto) string {
 	filepath := fmt.Sprintf("%d-%d-%s", dto.Width, dto.Height, dto.Path)
 	hash := sha256.Sum256([]byte(filepath))
 	return hex.EncodeToString(hash[:])

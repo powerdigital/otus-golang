@@ -7,16 +7,19 @@ import (
 	"time"
 
 	"github.com/powerdigital/project/internal/app"
+	"github.com/powerdigital/project/internal/config"
 )
 
 type Server struct {
 	projectApp app.App
+	config     config.Config
 	httpServer *http.Server
 }
 
-func NewServer(app app.App) *Server {
+func NewServer(app app.App, config config.Config) *Server {
 	return &Server{
 		projectApp: app,
+		config:     config,
 	}
 }
 
@@ -50,6 +53,6 @@ func (s *Server) getHandler() *http.ServeMux {
 
 func ResizeImage(s Server) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		s.projectApp.ResizeImage(w, r)
+		s.projectApp.ResizeImage(w, r, s.config)
 	})
 }
