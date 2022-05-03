@@ -123,10 +123,10 @@ func uploadRemoteFile(w http.ResponseWriter, r *http.Request) (fileDest string, 
 	}
 
 	file, err := http.Get(urlData.String())
-	defer file.Body.Close()
 	if err != nil {
 		w.Write([]byte(err.Error()))
 	}
+	defer file.Body.Close()
 
 	img, err := jpeg.Decode(file.Body)
 	if err != nil {
