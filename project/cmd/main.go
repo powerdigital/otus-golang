@@ -8,6 +8,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/powerdigital/project/internal/app"
 	internalhttp "github.com/powerdigital/project/internal/server/http"
 )
 
@@ -15,7 +16,8 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 	defer cancel()
 
-	server := internalhttp.NewServer()
+	app := app.NewApp()
+	server := internalhttp.NewServer(app)
 
 	go func() {
 		<-ctx.Done()
