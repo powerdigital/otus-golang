@@ -4,8 +4,8 @@ run:
 issues:
   exclude-rules:
     - linters:
-        - noctx
         - gosec
+        - noctx
       text: "G107"
 
 linters:

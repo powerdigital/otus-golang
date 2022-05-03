@@ -28,7 +28,7 @@ func (c lruCache) Set(key Key, value interface{}) bool {
 }
 
 func (c lruCache) Get(key Key) (value interface{}, ok bool) {
-	if _, ok = c.items[key]; ok != false {
+	if _, ok = c.items[key]; ok {
 		value = c.items[key].Value
 	}
 
