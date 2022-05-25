@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -13,6 +15,9 @@ import (
 )
 
 func main() {
+	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+	logger := log.With().Logger()
+
 	config, err := NewConfig()
 	if err != nil {
 		fmt.Println(err)
@@ -22,8 +27,8 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 	defer cancel()
 
-	app := app.NewApp()
-	server := internalhttp.NewServer(app, *config)
+	app := app.NewApp(logger, *config)
+	server := internalhttp.NewServer(app)
 
 	go func() {
 		<-ctx.Done()
@@ -38,7 +43,7 @@ func main() {
 
 	fmt.Println("app is running...")
 
-	if err := server.Start(ctx); err != nil {
+	if err := server.Start(); err != nil {
 		cancel()
 		os.Exit(1) //nolint:gocritic
 	}

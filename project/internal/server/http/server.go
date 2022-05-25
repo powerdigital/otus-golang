@@ -7,23 +7,20 @@ import (
 	"time"
 
 	"github.com/powerdigital/project/internal/app"
-	"github.com/powerdigital/project/internal/config"
 )
 
 type Server struct {
-	projectApp app.App
-	config     config.Config
+	app        app.App
 	httpServer *http.Server
 }
 
-func NewServer(app app.App, config config.Config) *Server {
+func NewServer(app app.App) *Server {
 	return &Server{
-		projectApp: app,
-		config:     config,
+		app: app,
 	}
 }
 
-func (s *Server) Start(ctx context.Context) error {
+func (s *Server) Start() error {
 	server := &http.Server{
 		Addr:         ":8888",
 		Handler:      s.getHandler(),
@@ -31,9 +28,7 @@ func (s *Server) Start(ctx context.Context) error {
 		WriteTimeout: 10 * time.Second,
 	}
 
-	server.ListenAndServe()
-
-	return server.Shutdown(ctx)
+	return server.ListenAndServe()
 }
 
 func (s *Server) Stop(ctx context.Context) error {
@@ -46,13 +41,13 @@ func (s *Server) Stop(ctx context.Context) error {
 
 func (s *Server) getHandler() *http.ServeMux {
 	mux := http.NewServeMux()
-	mux.Handle("/", ResizeImage(*s))
+	mux.Handle("/", s.ResizeImage())
 
 	return mux
 }
 
-func ResizeImage(s Server) http.Handler {
+func (s Server) ResizeImage() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		s.projectApp.ResizeImage(w, r, s.config)
+		s.app.ResizeImage(w, r)
 	})
 }

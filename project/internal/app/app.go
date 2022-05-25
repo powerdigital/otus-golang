@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/rs/zerolog"
 	"image/jpeg"
 	"net/http"
 	"net/url"
@@ -25,14 +26,20 @@ type uriPathDto struct {
 	Path   string
 }
 
-type App struct{}
-
-func NewApp() App {
-	return App{}
+type App struct {
+	logger zerolog.Logger
+	config config.Config
 }
 
-func (app App) ResizeImage(w http.ResponseWriter, r *http.Request, config config.Config) {
-	fileDest, err := uploadRemoteFile(w, r, config)
+func NewApp(logger zerolog.Logger, config config.Config) App {
+	return App{
+		logger: logger,
+		config: config,
+	}
+}
+
+func (app App) ResizeImage(w http.ResponseWriter, r *http.Request) {
+	fileDest, err := uploadRemoteFile(w, r, app.config)
 	if err != nil {
 		w.Write([]byte(err.Error()))
 	}
@@ -112,17 +119,17 @@ func uploadRemoteFile(w http.ResponseWriter, r *http.Request, config config.Conf
 func getRequestDto(r *http.Request) (*uriPathDto, error) {
 	params := strings.Split(r.RequestURI, "/")
 
-	width, err := strconv.Atoi(params[1])
+	width, err := strconv.Atoi(params[2])
 	if err != nil {
 		return nil, err
 	}
 
-	height, err := strconv.Atoi(params[2])
+	height, err := strconv.Atoi(params[3])
 	if err != nil {
 		return nil, err
 	}
 
-	path := strings.Join(params[3:], "/")
+	path := strings.Join(params[4:], "/")
 	if len(path) == 0 {
 		return nil, errors.New("empty file path")
 	}
