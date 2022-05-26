@@ -3,8 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -12,6 +10,8 @@ import (
 
 	"github.com/powerdigital/project/internal/app"
 	internalhttp "github.com/powerdigital/project/internal/server/http"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
 func main() {
@@ -33,7 +33,7 @@ func main() {
 	go func() {
 		<-ctx.Done()
 
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+		ctx, cancel = context.WithTimeout(context.Background(), time.Second*3)
 		defer cancel()
 
 		if err := server.Stop(ctx); err != nil {

@@ -6,7 +6,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/rs/zerolog"
 	"image/jpeg"
 	"net/http"
 	"net/url"
@@ -16,6 +15,7 @@ import (
 
 	"github.com/nfnt/resize"
 	"github.com/powerdigital/project/internal/config"
+	"github.com/rs/zerolog"
 )
 
 const fileExtJpg = "jpg"
@@ -84,8 +84,7 @@ func uploadRemoteFile(w http.ResponseWriter, r *http.Request, config config.Conf
 		urlData.Scheme = "https"
 	}
 
-	ctx := context.Background()
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, urlData.String(), nil)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, urlData.String(), nil)
 	if err != nil {
 		w.Write([]byte(err.Error()))
 	}
