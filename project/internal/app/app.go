@@ -27,20 +27,21 @@ type uriPathDto struct {
 }
 
 type App struct {
-	logger zerolog.Logger
-	config config.Config
+	Logger zerolog.Logger
+	Config config.Config
 }
 
 func NewApp(logger zerolog.Logger, config config.Config) App {
 	return App{
-		logger: logger,
-		config: config,
+		Logger: logger,
+		Config: config,
 	}
 }
 
 func (app App) ResizeImage(w http.ResponseWriter, r *http.Request) {
-	fileDest, err := uploadRemoteFile(w, r, app.config)
+	fileDest, err := uploadRemoteFile(w, r, app)
 	if err != nil {
+		app.Logger.Error().Err(err).Msg("failed to upload remote file")
 		w.Write([]byte(err.Error()))
 	}
 
@@ -49,14 +50,15 @@ func (app App) ResizeImage(w http.ResponseWriter, r *http.Request) {
 
 	fileBytes, err := os.ReadFile(fileDest)
 	if err != nil {
+		app.Logger.Error().Err(err).Msg("failed to read file")
 		w.Write([]byte(err.Error()))
 	}
 
 	w.Write(fileBytes)
 }
 
-func uploadRemoteFile(w http.ResponseWriter, r *http.Request, config config.Config) (fileDest string, err error) {
-	dto, err := getRequestDto(r)
+func uploadRemoteFile(w http.ResponseWriter, r *http.Request, app App) (fileDest string, err error) {
+	dto, err := getRequestDto(r.RequestURI)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
@@ -64,7 +66,7 @@ func uploadRemoteFile(w http.ResponseWriter, r *http.Request, config config.Conf
 	}
 
 	fileHash := getRequestFileHash(*dto)
-	fileDest = fmt.Sprintf("%s/%s.%s", config.CacheFolder, fileHash, fileExtJpg)
+	fileDest = fmt.Sprintf("%s/%s.%s", app.Config.CacheFolder, fileHash, fileExtJpg)
 	fileBytes, err := os.ReadFile(fileDest)
 	if err == nil {
 		w.WriteHeader(http.StatusOK)
@@ -115,8 +117,8 @@ func uploadRemoteFile(w http.ResponseWriter, r *http.Request, config config.Conf
 	return fileDest, err
 }
 
-func getRequestDto(r *http.Request) (*uriPathDto, error) {
-	params := strings.Split(r.RequestURI, "/")
+func getRequestDto(requestURI string) (*uriPathDto, error) {
+	params := strings.Split(requestURI, "/")
 
 	width, err := strconv.Atoi(params[2])
 	if err != nil {
@@ -130,7 +132,7 @@ func getRequestDto(r *http.Request) (*uriPathDto, error) {
 
 	path := strings.Join(params[4:], "/")
 	if len(path) == 0 {
-		return nil, errors.New("empty file path")
+		return nil, errors.New("path is empty")
 	}
 
 	return &uriPathDto{

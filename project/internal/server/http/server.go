@@ -28,11 +28,17 @@ func (s *Server) Start() error {
 		WriteTimeout: 10 * time.Second,
 	}
 
-	return server.ListenAndServe()
+	if err := server.ListenAndServe(); err != nil {
+		s.app.Logger.Error().Err(err).Msg("http server error")
+		return err
+	}
+
+	return nil
 }
 
 func (s *Server) Stop(ctx context.Context) error {
 	if err := s.httpServer.Shutdown(ctx); err != nil {
+		s.app.Logger.Error().Err(err).Msg("http server shutdown error")
 		return fmt.Errorf("http server shutdown error: %w", err)
 	}
 
