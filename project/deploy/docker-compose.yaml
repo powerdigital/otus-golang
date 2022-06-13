@@ -1,0 +1,10 @@
+version: "3"
+
+services:
+  project:
+    image: project:develop
+    depends_on:
+      - migration
+    entrypoint: /bin/sh -c 'while ! nc -z db 5432; do sleep 1; done; /opt/project/project http'
+    ports:
+      - "8000:8000"
