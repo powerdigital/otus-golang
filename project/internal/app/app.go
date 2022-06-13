@@ -118,7 +118,10 @@ func uploadRemoteFile(w http.ResponseWriter, r *http.Request, app App) (fileDest
 }
 
 func getRequestDto(requestURI string) (*uriPathDto, error) {
-	params := strings.Split(requestURI, "/")
+	params := strings.SplitN(requestURI, "/", 5)
+	if len(params) != 5 {
+		return nil, errors.New("wrong request URI")
+	}
 
 	width, err := strconv.Atoi(params[2])
 	if err != nil {
@@ -130,15 +133,15 @@ func getRequestDto(requestURI string) (*uriPathDto, error) {
 		return nil, err
 	}
 
-	path := strings.Join(params[4:], "/")
-	if len(path) == 0 {
-		return nil, errors.New("path is empty")
+	imagePath := params[4]
+	if len(imagePath) == 0 {
+		return nil, errors.New("wrong image path")
 	}
 
 	return &uriPathDto{
 		Width:  uint(width),
 		Height: uint(height),
-		Path:   path,
+		Path:   imagePath,
 	}, nil
 }
 
