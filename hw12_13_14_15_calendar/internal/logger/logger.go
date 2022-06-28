@@ -2,71 +2,68 @@ package logger
 
 import (
 	"fmt"
-	"os"
-	"strings"
 	"time"
 
-	"github.com/powerdigital/otus-golang/hw12_13_14_15_calendar/internal/config"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
-const (
-	levelInfo     = "INFO"
-	levelError    = "ERROR"
-	levelCritical = "CRITICAL"
-	levelFatal    = "FATAL"
-)
-
-type Logger struct {
-	level   string
-	logFile string
+type Logger interface {
+	Debug(msg string, keyValueContext ...interface{})
+	Info(msg string, keyValueContext ...interface{})
+	Warn(msg string, keyValueContext ...interface{})
+	Error(msg string, keyValueContext ...interface{})
 }
 
-type LogHandler interface {
-	Info(msg string)
-	Error(msg string)
-	Critical(msg string)
-	Fatal(msg string)
+var _ Logger = (*ZapLogger)(nil)
+
+type ZapLogger struct {
+	zl *zap.SugaredLogger
 }
 
-func New(config config.LoggerConf) *Logger {
-	return &Logger{
-		level:   config.Level,
-		logFile: config.File,
-	}
-}
+func New(level string, target string, encoding string) (*ZapLogger, error) {
+	config := zap.NewProductionConfig()
 
-func (l Logger) Info(msg string) {
-	log := fmt.Sprintf("[%s] %s\n", levelInfo, msg)
-	l.WriteLog(log)
-}
-
-func (l Logger) Error(msg string) {
-	log := fmt.Sprintf("[%s] %s\n", levelError, msg)
-	l.WriteLog(log)
-}
-
-func (l Logger) Critical(msg string) {
-	log := fmt.Sprintf("[%s] %s\n", levelCritical, msg)
-	l.WriteLog(log)
-}
-
-func (l Logger) Fatal(msg string) {
-	log := fmt.Sprintf("[%s] %s\n", levelFatal, msg)
-	l.WriteLog(log)
-}
-
-func (l Logger) WriteLog(msg string) {
-	timeCurr := time.Now()
-	msg = strings.Join([]string{timeCurr.Format("2006-01-02 15:04:05"), msg}, " ")
-
-	f, err := os.OpenFile(l.logFile, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0o600)
+	zlevel, err := zap.ParseAtomicLevel(level)
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("unknown level %s: %w", level, err)
 	}
 
-	defer f.Close()
-
-	if _, err = f.WriteString(msg); err != nil {
-		panic(err)
+	config.Encoding = encoding
+	config.EncoderConfig.EncodeTime = func(t time.Time, encoder zapcore.PrimitiveArrayEncoder) {
+		formatted := t.Format(time.RFC3339)
+		encoder.AppendString(formatted)
 	}
+	config.Level = zlevel
+	config.OutputPaths = []string{target}
+	config.ErrorOutputPaths = []string{target}
+	config.DisableCaller = true
+	config.DisableStacktrace = false
+
+	zl, err := config.Build()
+	if err != nil {
+		return nil, fmt.Errorf("cannot build logger: %w", err)
+	}
+
+	return &ZapLogger{zl.Sugar()}, nil
+}
+
+func (l *ZapLogger) Debug(msg string, keyValueContext ...interface{}) {
+	l.zl.Debugw(msg, keyValueContext...)
+}
+
+func (l *ZapLogger) Info(msg string, keyValueContext ...interface{}) {
+	l.zl.Infow(msg, keyValueContext...)
+}
+
+func (l *ZapLogger) Warn(msg string, keyValueContext ...interface{}) {
+	l.zl.Warnw(msg, keyValueContext...)
+}
+
+func (l *ZapLogger) Error(msg string, keyValueContext ...interface{}) {
+	l.zl.Errorw(msg, keyValueContext...)
+}
+
+func (l *ZapLogger) Close() error {
+	return l.zl.Sync()
 }
