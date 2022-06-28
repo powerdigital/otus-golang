@@ -1,31 +1,54 @@
-package internalhttp
+package httpserver
 
 import (
-	"fmt"
 	"net/http"
+	"strconv"
+	"strings"
 	"time"
+
+	"github.com/powerdigital/otus-golang/hw12_13_14_15_calendar/internal/logger"
 )
 
-func loggingMiddleware(next http.Handler, server Server) http.Handler {
+const timeLayout = "[02/Jan/2006:15:04:05 -0700]"
+
+type responseWriterDecorator struct {
+	http.ResponseWriter
+	statusCode int
+}
+
+func (w *responseWriterDecorator) WriteHeader(statusCode int) {
+	w.ResponseWriter.WriteHeader(statusCode)
+	w.statusCode = statusCode
+}
+
+func wrapResponseWriter(w http.ResponseWriter) *responseWriterDecorator {
+	return &responseWriterDecorator{
+		ResponseWriter: w,
+		statusCode:     http.StatusOK,
+	}
+}
+
+func loggingMiddleware(next http.Handler, log logger.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 
-		next.ServeHTTP(w, r)
+		decoratedWriter := wrapResponseWriter(w)
+		next.ServeHTTP(decoratedWriter, r)
 
-		httpVersion := r.Header.Get("Proto")
-		userAgent := r.Header.Get("User-Agent")
-		duration := time.Since(start)
-
-		logData := fmt.Sprintf(
-			"%s %s %s %s %s %ds",
+		msg := strings.Join([]string{
 			r.RemoteAddr,
+			start.Format(timeLayout),
 			r.Method,
-			r.RequestURI,
-			httpVersion,
-			userAgent,
-			duration,
-		)
+			r.URL.Path,
+			r.Proto,
+			strconv.Itoa(decoratedWriter.statusCode),
+			time.Since(start).String(),
+			r.UserAgent(),
+		}, " ")
 
-		server.logger.Info(logData)
+		log.Info(msg,
+			"type", "access",
+			"context", "http",
+		)
 	})
 }
